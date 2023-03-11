@@ -58,7 +58,7 @@ def submit_url(request):
             tickers.append(request.POST.get(f'ticker{idx}'))
             idx += 1  
         if tickers:
-            db_obj = db_controller("124.198.124.188", "root", "fmsoft1004", "history") #db연결
+            db_obj = db_controller("xxx.xxx.xxx.xxx", "xxx", "xx", "xxxx") #db연결
             cur = db_obj.get_cursor()
             name = request.POST.get("portfolioname")
             n = len(tickers); USER_ID = [user]*n; PORTFOLIO = [name]*n
