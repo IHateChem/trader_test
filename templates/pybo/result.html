@@ -1,0 +1,185 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>result</title>
+      <title>My D3 Graph</title>
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/c3@0.4.18/c3.min.css">
+      <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+      <script src="https://cdn.jsdelivr.net/npm/c3@0.4.18/c3.min.js"></script>
+
+      <style>
+        /* 로그 스타일 */
+        br {
+          margin-top: 10px;
+          margin-bottom: 10px;
+        }
+        
+        /* 차트 컨테이너 스타일 */
+        #chart1,
+        #chart2,
+        #chart3 {
+          width: 100%;
+          height: 300px;
+          margin-bottom: 20px;
+        }
+      </style>
+</head>
+<body>
+    {% csrf_token %}
+    {% for log in logs %}
+      <br> {{log}} </br>
+    {% endfor %}
+      <div id="chart1"></div>
+  <div id="chart2"></div>
+  <div id="chart3"></div>
+
+  <script>
+      // 데이터
+      var data = '{{ data_json|safe  }}';
+      // 데이터 파싱
+      var parsed_data = JSON.parse(data);
+      // 첫 번째 키를 가져오기
+      var key = Object.keys(parsed_data)[0];
+      // 데이터 추출
+      var chart_data = Object.keys(parsed_data[key]).map(function(k) {
+              var row = parsed_data[key][k];
+              row.Epoch = k;
+              return row;
+            });
+ // 차트1 생성
+  var chart1 = c3.generate({
+        bindto: '#chart1',
+        data: {
+          json: chart_data,
+          keys: {
+            x: 'Epoch',
+            value: ['#Stocks']
+          },
+          type: 'line'
+        },
+        axis: {
+          x: {
+            show: true,
+            tick: {
+              count: 11,
+              format: function (x) { return parseInt(x); },
+              fit: false,
+              centered: true
+            },
+            label: {
+              text: 'Epoch',
+              position: 'outer-center'
+            }
+          },
+          y: {
+            show: true,
+            label: {
+              text: '# Stocks',
+              position: 'outer-middle'
+            }
+          }
+        },
+        legend: {
+          show: false
+        },
+        point: {
+          show: false
+        }
+      });
+      
+      // 차트2 생성
+      var chart2 = c3.generate({
+        bindto: '#chart2',
+        data: {
+          json: chart_data,
+          keys: {
+            x: 'Epoch',
+            value: ['PV']
+          },
+          type: 'line'
+        },
+        axis: {
+          x: {
+            show: true,
+            tick: {
+              count: 11,
+              format: function (x) { return parseInt(x); },
+              fit: false,
+              centered: true
+            },
+            label: {
+              text: 'Epoch',
+              position: 'outer-center'
+            }
+          },
+          y: {
+            show: true,
+            label: {
+              text: '# PV',
+              position: 'outer-middle'
+            }
+          }
+        },
+        legend: {
+          show: false
+        },
+        point: {
+          show: false
+        }
+      });
+      
+      var chart3 = c3.generate({
+    bindto: '#chart3',
+    data: {
+      json: chart_data,
+      keys: {
+        x: 'Epoch',
+        value: ['Loss']
+      },
+      type: 'line',
+      onmouseover: function(d) {
+        // 마우스 오버 이벤트 처리
+        if (d.value < -1|| d.value > 1) {
+          d.value = null; // 범위를 벗어나는 값은 null로 처리하여 그래프에 표시되지 않도록 함
+        }
+      },
+      onrendered: function() {
+        // 그래프 렌더링 이후 처리
+        chart3.data().forEach(function(series) {
+          series.values.forEach(function(d) {
+            if (d.value < -1 || d.value > 1) {
+              d.value = null; // 범위를 벗어나는 값은 null로 처리하여 그래프에 표시되지 않도록 함
+            }
+          });
+        });
+        chart3.flush(); // 변경된 데이터를 적용하여 그래프를 다시 그림
+      }
+    },
+    axis: {
+      x: {
+            show: true,
+            tick: {
+              count: 11,
+              format: function (x) { return parseInt(x); },
+              fit: false,
+              centered: true
+            },
+            label: {
+              text: 'Epoch',
+              position: 'outer-center'
+            }
+          },
+      y: {
+        max: 1,
+        min: -1,
+      }
+    }
+  });
+
+
+    </script>
+
+</body>
+</html>

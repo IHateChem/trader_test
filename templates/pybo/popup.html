@@ -1,0 +1,85 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8">
+        <title>pop up</title>
+        <link rel="stylesheet" type="text/css" href="{% static 'css/popup.css' %}">
+    </head>
+    <body>
+      <form method="POST" action="{% url 'submit_url' %}" onsubmit="submitForm(event)">
+        {% csrf_token %}
+        <div id="inputFields">
+            <label for="portfolioname">new portfolio name: </label>
+            <input type="text" name="portfolioname" id="portfolioname"> <br>
+          </div>
+        <div>
+          <button type="button" onclick="addInputField()">+</button>
+        </div>
+        <br>
+        <div id="tickerFields"></div>
+        <input type="submit" value="Submit">
+      </form>
+  
+      <script>
+          function addInputField() {
+              // 새로운 입력 필드 생성
+              const newInputField = document.createElement("div");
+              const label = document.createElement("label");
+              const input = document.createElement("input");
+              const deleteButton = document.createElement("button"); // - 버튼 추가
+              
+              // 새로운 입력 필드 속성 설정
+              const fieldNumber = document.querySelectorAll('input[type="text"]').length-1;
+              label.setAttribute("for", "ticker" + fieldNumber);
+              label.textContent = "Ticker code: ";
+              input.setAttribute("type", "text");
+              input.setAttribute("name", "ticker" + fieldNumber);
+              input.setAttribute("id", "ticker" + fieldNumber);
+              input.setAttribute("pattern", "^\\d{6}$");
+              deleteButton.textContent = "-";
+              deleteButton.addEventListener("click", function() { // - 버튼 클릭 이벤트 리스너 등록
+                newInputField.remove(); // 해당 입력 필드 삭제
+                const tickerInputs = document.querySelectorAll('input[name^="ticker"]');
+                for (let i = 0 ; i < tickerInputs.length; i++) { // 인덱스 재조정
+                  tickerInputs[i].setAttribute("name", "ticker" + i);
+                  tickerInputs[i].setAttribute("id", "ticker" + i);
+                  tickerInputs[i].previousSibling.setAttribute("for", "ticker" + i);
+                }
+              });
+              
+              // 새로운 입력 필드를 DOM에 추가
+              newInputField.appendChild(label);
+              newInputField.appendChild(input);
+              newInputField.appendChild(deleteButton); // - 버튼 추가
+              document.getElementById("inputFields").appendChild(newInputField);
+            }
+
+      
+        function submitForm(event) {
+          event.preventDefault();
+          var form = event.target;
+          var formData = new FormData(form);
+          var csrfToken = document.getElementsByName('csrfmiddlewaretoken')[0].value; // CSRF 토큰 값 가져오기
+        
+          // 동적으로 생성된 입력 필드들도 FormData에 추가
+          const tickerInputs = document.querySelectorAll('input[name^="ticker"]');
+          for (let i = 0; i < tickerInputs.length; i++) {
+            formData.append(tickerInputs[i].name, tickerInputs[i].value);
+          }
+        
+          var xhr = new XMLHttpRequest();
+          xhr.open('POST', form.action);
+          xhr.setRequestHeader('X-CSRFToken', csrfToken);
+          xhr.onload = function() {
+            // 요청이 성공한 경우 실행할 코드
+            window.close();
+          };
+          xhr.onerror = function() {
+            // 요청이 실패한 경우 실행할 코드
+          };
+          xhr.send(formData);
+        }
+      </script>
+    </body>
+</html>
